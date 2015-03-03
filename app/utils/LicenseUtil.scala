@@ -36,8 +36,8 @@ class LicenseUtil(implicit app: Application) {
   type MaybeLicense = Option[String]
 
   implicit def stringToLicenseText(value: String): MaybeLicense = {
-    Play.getExistingFile("conf/licenses/" + value).flatMap { file =>
-      Try(Source.fromFile(file)(Codec.ISO8859).mkString).toOption
+    Play.resource("licenses/" + value).flatMap { url =>
+      Try(Source.fromURL(url)(Codec.ISO8859).mkString).toOption
     }
   }
 
