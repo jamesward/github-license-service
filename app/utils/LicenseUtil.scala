@@ -15,8 +15,8 @@ class LicenseUtil(implicit app: Application) {
       case (name, licenseText) =>
         val high = Math.max(licenseText.length, contents.length)
         val low = Math.min(licenseText.length, contents.length)
-        val distance = (high - low) / low
-        distance < 2
+        val distance = (high - low) / low.toDouble
+        distance < 0.5
     }
 
     // get the Levenshtein Distance for each license

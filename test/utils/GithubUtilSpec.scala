@@ -16,8 +16,8 @@ class GithubUtilSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
       license must include ("MIT")
     }
     "fail to fetch a license from webjars/webjars" in {
-      whenReady(githubUtil.license("webjars", "webjars").failed) { result =>
-        result mustBe a [Exception]
+      intercept[Exception] {
+        await(githubUtil.license("webjars", "webjars"))
       }
     }
   }
