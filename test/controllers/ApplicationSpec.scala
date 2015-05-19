@@ -10,13 +10,13 @@ class ApplicationSpec extends PlaySpec with OneAppPerSuite {
 
   "Application.license" must {
     "return MIT for twbs/bootstrap" in {
-      val result = controllers.Application.license("twbs", "bootstrap")(FakeRequest())
+      val result = controllers.Application.license("twbs", "bootstrap", "master")(FakeRequest())
 
       status(result) must be (Status.OK)
       contentAsString(result) must equal ("MIT")
     }
     "return not found for webjars/webjars" in {
-      val result = controllers.Application.license("webjars", "webjars")(FakeRequest())
+      val result = controllers.Application.license("webjars", "webjars", "master")(FakeRequest())
       status(result) must be (Status.NOT_FOUND)
     }
   }
