@@ -9,18 +9,36 @@ import scala.concurrent.{ExecutionContext, Future}
 class GithubUtil(implicit app: Application, ec: ExecutionContext) {
 
   def license(org: String, repo: String, version: String): Future[String] = {
-    Future.find(Seq("LICENSE", "LICENSE.md", "LICENSE.txt").map(file(org, repo, version, _)))(_.isDefined).flatMap { a =>
-      a.flatten.fold(Future.failed[String](new Exception("No license found")))(Future.successful)
+    val licenseFutures = Seq("LICENSE", "LICENSE.md", "LICENSE.txt").map(file(org, repo, version, _))
+    Future.find(licenseFutures)(!_.isEmpty).flatMap { maybeLicense =>
+      maybeLicense.fold(Future.failed[String](new Exception("Could not find LICENSE, LICENSE.md, LICENSE.txt")))(Future.successful)
+    } fallbackTo {
+      licenseFromReadmeMd(org, repo, version)
+    } recoverWith {
+      case e: Exception => Future.failed(new Exception("No LICENSE, LICENSE.md, LICENSE.txt or README.md containing a license found"))
     }
   }
 
-  def file(org: String, repo: String, version: String, path: String): Future[Option[String]] = {
-    WS.url(s"https://raw.githubusercontent.com/$org/$repo/$version/$path").get().map { response =>
+  def licenseFromReadmeMd(org: String, repo: String, version: String): Future[String] = {
+    file(org, repo, version, "README.md").flatMap { readmemd =>
+      val licenseStart = readmemd.lastIndexOf("# License")
+      if (licenseStart >= 0) {
+        Future.successful(readmemd.substring(licenseStart + 9))
+      }
+      else {
+        Future.failed(new Exception("License was not found in the README.md"))
+      }
+    }
+  }
+
+  def file(org: String, repo: String, version: String, path: String): Future[String] = {
+    val url = s"https://raw.githubusercontent.com/$org/$repo/$version/$path"
+    WS.url(url).get().flatMap { response =>
       response.status match {
         case Status.OK =>
-          Some(response.body)
+          Future.successful(response.body)
         case _ =>
-          None
+          Future.failed(new Exception(s"Could not get $url"))
       }
     }
   }
