@@ -9,9 +9,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class GithubUtil(implicit app: Application, ec: ExecutionContext) {
 
   def license(org: String, repo: String, version: String): Future[String] = {
-    val licenseFutures = Seq("LICENSE", "LICENSE.md", "LICENSE.txt", "license.txt", "licenses.txt", "LICENCE").map(file(org, repo, version, _))
+    val licenseFutures = Seq("LICENSE", "LICENSE.md", "LICENSE.txt", "license.txt", "licenses.txt", "LICENCE", "License").map(file(org, repo, version, _))
     Future.find(licenseFutures)(!_.isEmpty).flatMap { maybeLicense =>
-      maybeLicense.fold(Future.failed[String](new Exception("Could not find LICENSE, LICENSE.md, LICENSE.txt, license.txt, licenses.txt")))(Future.successful)
+      maybeLicense.fold(Future.failed[String](new Exception("Could not find LICENSE, LICENSE.md, LICENSE.txt, license.txt, licenses.txt, License")))(Future.successful)
     } fallbackTo {
       licenseFromReadmeMd(org, repo, version)
     } recoverWith {
