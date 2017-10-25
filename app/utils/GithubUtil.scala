@@ -2,7 +2,6 @@ package utils
 
 import javax.inject.Inject
 
-import play.api.Application
 import play.api.http.Status
 import play.api.libs.ws.WSClient
 

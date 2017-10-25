@@ -29,6 +29,9 @@ class GithubUtilSpec extends PlaySpec with GuiceOneAppPerSuite with ScalaFutures
     "fetch a license for n3-charts/line-chart" in {
       await(githubUtil.license("n3-charts", "line-chart", "master")) must include ("MIT")
     }
+    "fetch a license for cowboy/javascript-sync-async-foreach" in {
+      await(githubUtil.license("cowboy", "javascript-sync-async-foreach", "master")) must include ("MIT")
+    }
   }
 
 }
