@@ -1,18 +1,14 @@
 package controllers
 
-import play.api.Play
-import play.api.mvc.Results.EmptyContent
+import javax.inject.Inject
+
 import play.api.mvc._
-import utils.{LicenseUtil, GithubUtil}
-import scala.concurrent.ExecutionContext.Implicits.global
+import utils.{GithubUtil, LicenseUtil}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 
-object Application extends Controller {
-
-  lazy val githubUtil = GithubUtil(Play.current, ExecutionContext.global)
-  lazy val licenseUtil = LicenseUtil(Play.current)
+class Application @Inject() (githubUtil: GithubUtil, licenseUtil: LicenseUtil) (implicit executionContext: ExecutionContext) extends InjectedController {
 
   def license(org: String, repo: String, version: String) = Action.async {
     githubUtil.license(org, repo, version).map { licenseText =>

@@ -1,12 +1,14 @@
 package utils
 
-import org.apache.commons.lang3.StringUtils
-import play.api.{Play, Application}
+import javax.inject.Inject
+
+import org.apache.commons.text.similarity.LevenshteinDistance
+import play.api.Environment
 
 import scala.io.{Codec, Source}
 import scala.util.Try
 
-class LicenseUtil(implicit app: Application) {
+class LicenseUtil @Inject() (environment: Environment) {
 
   def detect(contents: String): Option[String] = {
 
@@ -21,7 +23,8 @@ class LicenseUtil(implicit app: Application) {
 
     // get the Levenshtein Distance for each license
     val licensesWithScores = possibleLicensesBasedOnLength.mapValues { licenseTemplate =>
-      (licenseTemplate, StringUtils.getLevenshteinDistance(licenseTemplate, contents))
+      val levenshteinDistance = new LevenshteinDistance()
+      (licenseTemplate, levenshteinDistance.apply(licenseTemplate, contents))
     }
 
     // pick the lowest scoring license if there are any
@@ -36,7 +39,7 @@ class LicenseUtil(implicit app: Application) {
   type MaybeLicense = Option[String]
 
   implicit def stringToLicenseText(value: String): MaybeLicense = {
-    Play.resource("licenses/" + value).flatMap { url =>
+    environment.resource("licenses/" + value).flatMap { url =>
       Try(Source.fromURL(url)(Codec.ISO8859).mkString).toOption
     }
   }
@@ -113,8 +116,4 @@ class LicenseUtil(implicit app: Application) {
   val licenses: Map[String, String] = allLicenses.filter(_._2.isDefined).map { case (name, maybeLicense) =>
     name -> maybeLicense.get
   }
-}
-
-object LicenseUtil {
-  def apply(implicit app: Application): LicenseUtil = new LicenseUtil()
 }

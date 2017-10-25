@@ -1,21 +1,23 @@
 package utils
 
+import javax.inject.Inject
+
 import play.api.Application
 import play.api.http.Status
-import play.api.libs.ws.WS
+import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class GithubUtil(implicit app: Application, ec: ExecutionContext) {
+class GithubUtil @Inject() (ws: WSClient) (implicit ec: ExecutionContext) {
 
   def license(org: String, repo: String, version: String): Future[String] = {
-    val licenseFutures = Seq("LICENSE", "LICENSE.md", "LICENSE.txt", "license.txt", "licenses.txt", "LICENCE", "License").map(file(org, repo, version, _))
+    val licenseFutures = Set("LICENSE", "LICENSE.md", "LICENSE.txt", "license.txt", "licenses.txt", "LICENCE", "License", "LICENSE-MIT").map(file(org, repo, version, _))
     Future.find(licenseFutures)(!_.isEmpty).flatMap { maybeLicense =>
-      maybeLicense.fold(Future.failed[String](new Exception("Could not find LICENSE, LICENSE.md, LICENSE.txt, license.txt, licenses.txt, License")))(Future.successful)
+      maybeLicense.fold(Future.failed[String](new Exception("Could not find LICENSE, LICENSE.md, LICENSE.txt, license.txt, licenses.txt, License, LICENSE-MIT")))(Future.successful)
     } fallbackTo {
       licenseFromReadmeMd(org, repo, version)
     } recoverWith {
-      case e: Exception => Future.failed(new Exception("No LICENSE, LICENSE.md, LICENSE.txt, license.txt, licenses.txt or README.md containing a license found"))
+      case e: Exception => Future.failed(new Exception("No LICENSE, LICENSE.md, LICENSE.txt, license.txt, licenses.txt, License, LICENSE-MIT or README.md containing a license found"))
     }
   }
 
@@ -33,7 +35,7 @@ class GithubUtil(implicit app: Application, ec: ExecutionContext) {
 
   def file(org: String, repo: String, version: String, path: String): Future[String] = {
     val url = s"https://raw.githubusercontent.com/$org/$repo/$version/$path"
-    WS.url(url).get().flatMap { response =>
+    ws.url(url).get().flatMap { response =>
       response.status match {
         case Status.OK =>
           Future.successful(response.body)
@@ -43,8 +45,4 @@ class GithubUtil(implicit app: Application, ec: ExecutionContext) {
     }
   }
 
-}
-
-object GithubUtil {
-  def apply(implicit app: Application, ec: ExecutionContext) = new GithubUtil()
 }

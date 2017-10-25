@@ -1,16 +1,12 @@
 package utils
 
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
-import play.api.libs.json.{JsArray, JsString, Json}
-import play.api.libs.ws.{WS, WSAuthScheme}
-import play.api.test.Helpers._
-
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import org.scalatestplus.play.PlaySpec
 
 
-class LicenseUtilSpec extends PlaySpec with OneAppPerSuite {
+class LicenseUtilSpec extends PlaySpec with GuiceOneAppPerSuite {
 
-  val licenseUtil = LicenseUtil(app)
+  lazy val licenseUtil = app.injector.instanceOf[LicenseUtil]
 
   "LicenseUtil allLicenses" must {
     "not have a fake license" in {

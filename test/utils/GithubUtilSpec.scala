@@ -1,14 +1,13 @@
 package utils
 
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.Helpers._
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
-import scala.concurrent.ExecutionContext
 
+class GithubUtilSpec extends PlaySpec with GuiceOneAppPerSuite with ScalaFutures {
 
-class GithubUtilSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
-
-  val githubUtil = GithubUtil(app, ExecutionContext.global)
+  lazy val githubUtil = app.injector.instanceOf[GithubUtil]
 
   "GithubUtil" must {
     "fetch a license from twbs/bootstrap" in {
@@ -22,10 +21,10 @@ class GithubUtilSpec extends PlaySpec with OneAppPerSuite with ScalaFutures {
     "fetch a license with a version" in {
       await(githubUtil.license("twbs", "bootstrap", "v3.3.0")) must include ("MIT")
     }
-    "fail to fetch a license from webjars/webjars" in {
+    "fail to fetch a license from webjars/jquery" in {
       intercept[Exception] {
-        await(githubUtil.license("webjars", "webjars", "master"))
-      }.getMessage must equal ("No LICENSE, LICENSE.md, LICENSE.txt, license.txt, licenses.txt or README.md containing a license found")
+        await(githubUtil.license("webjars", "jquery", "master"))
+      }.getMessage must equal ("No LICENSE, LICENSE.md, LICENSE.txt, license.txt, licenses.txt, License, LICENSE-MIT or README.md containing a license found")
     }
     "fetch a license for n3-charts/line-chart" in {
       await(githubUtil.license("n3-charts", "line-chart", "master")) must include ("MIT")
