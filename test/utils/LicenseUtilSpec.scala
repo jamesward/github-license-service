@@ -2,31 +2,12 @@ package utils
 
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import org.scalatestplus.play.PlaySpec
-
+import play.api.test.Helpers._
 
 class LicenseUtilSpec extends PlaySpec with GuiceOneAppPerSuite {
 
   lazy val licenseUtil = app.injector.instanceOf[LicenseUtil]
 
-  "LicenseUtil allLicenses" must {
-    "not have a fake license" in {
-      licenseUtil.allLicenses.get("ASDF") must be ('empty)
-    }
-    "define MIT" in {
-      licenseUtil.allLicenses.get("MIT").flatten must be ('defined)
-    }
-    "work with ISO8859" in {
-      licenseUtil.allLicenses("CPOL-1.02").get.contains("CPOL") must be (true)
-    }
-    "define all keys" in {
-      licenseUtil.allLicenses.values.exists(_.isEmpty) must be (false)
-    }
-  }
-  "LicenseUtil licenses" must {
-    "define MIT" in {
-      licenseUtil.licenses.get("MIT") must be ('defined)
-    }
-  }
   "LicenseUtil detect" must {
     "detect the MIT license from a Twitter license" in {
       val twitterLicense =
@@ -51,7 +32,7 @@ class LicenseUtilSpec extends PlaySpec with GuiceOneAppPerSuite {
           |LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
           |OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
           |THE SOFTWARE.""".stripMargin
-      licenseUtil.detect(twitterLicense) must be (Some("MIT"))
+      await(licenseUtil.detect(twitterLicense)) must be (Some("MIT"))
     }
     "detect the MIT license from a jQuery license" in {
       val jqueryLicense =
@@ -91,10 +72,10 @@ class LicenseUtilSpec extends PlaySpec with GuiceOneAppPerSuite {
           |externally maintained libraries used by this software which have their
           |own licenses; we recommend you read them, as their terms may differ from
           |the terms above.""".stripMargin
-      licenseUtil.detect(jqueryLicense) must be (Some("MIT"))
+      await(licenseUtil.detect(jqueryLicense)) must be (Some("MIT"))
     }
     "not detect a license from a non-license" in {
-      licenseUtil.detect("asdf") must be (None)
+      await(licenseUtil.detect("asdf")) must be (None)
     }
   }
 
