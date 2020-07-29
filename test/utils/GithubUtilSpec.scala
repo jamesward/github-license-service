@@ -11,7 +11,7 @@ class GithubUtilSpec extends PlaySpec with GuiceOneAppPerSuite with ScalaFutures
 
   "GithubUtil" must {
     "fetch a license from twbs/bootstrap" in {
-      val license = await(githubUtil.license("twbs", "bootstrap", "master"))
+      val license = await(githubUtil.license("twbs", "bootstrap", "main"))
       license must include ("MIT")
     }
     "figure out a license from angular/bower-angular" in {
