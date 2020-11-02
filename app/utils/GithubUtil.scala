@@ -10,7 +10,7 @@ import scala.util.Try
 class GithubUtil @Inject() (ws: WSClient) (implicit ec: ExecutionContext) {
 
   def defaultBranch(org: String, repo: String): Future[String] = {
-    val url = s"http://api.github.com/repos/$org/$repo"
+    val url = s"https://api.github.com/repos/$org/$repo"
     ws.url(url).get().flatMap { response =>
       response.status match {
         case Status.OK =>
@@ -27,12 +27,12 @@ class GithubUtil @Inject() (ws: WSClient) (implicit ec: ExecutionContext) {
 
   def license(org: String, repo: String, version: String): Future[String] = {
     val licenseFutures = Set("LICENSE", "LICENSE.md", "LICENSE.txt", "license.txt", "licenses.txt", "LICENCE", "License", "LICENSE-MIT").map(file(org, repo, version, _))
-    Future.find(licenseFutures)(!_.isEmpty).flatMap { maybeLicense =>
+    Future.find(licenseFutures)(_.nonEmpty).flatMap { maybeLicense =>
       maybeLicense.fold(Future.failed[String](new Exception("Could not find LICENSE, LICENSE.md, LICENSE.txt, license.txt, licenses.txt, License, LICENSE-MIT")))(Future.successful)
     } fallbackTo {
       licenseFromReadmeMd(org, repo, version)
     } recoverWith {
-      case e: Exception => Future.failed(new Exception("No LICENSE, LICENSE.md, LICENSE.txt, license.txt, licenses.txt, License, LICENSE-MIT or README.md containing a license found"))
+      case _: Exception => Future.failed(new Exception("No LICENSE, LICENSE.md, LICENSE.txt, license.txt, licenses.txt, License, LICENSE-MIT or README.md containing a license found"))
     }
   }
 

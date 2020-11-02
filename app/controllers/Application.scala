@@ -22,7 +22,7 @@ class Application @Inject() (githubUtil: GithubUtil, licenseUtil: LicenseUtil) (
         maybeLicense.fold(NotFound("License Not Detected"))(Ok(_))
       }
     } recover {
-      case e: Exception =>
+      case _: Exception =>
         NotFound("License Not Found")
     }
   }

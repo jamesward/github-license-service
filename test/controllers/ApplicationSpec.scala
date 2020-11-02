@@ -17,7 +17,7 @@ class ApplicationSpec extends PlaySpec with GuiceOneAppPerSuite {
       status(result) must be (Status.OK)
       contentAsString(result) must equal ("MIT")
     }
-    "return not found for webjars/webjars" in {
+    "return not found for webjars/jquery" in {
       val result = applicationController.license("webjars", "jquery", "main")(FakeRequest())
       status(result) must be (Status.NOT_FOUND)
     }
